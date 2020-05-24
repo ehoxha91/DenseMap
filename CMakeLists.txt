@@ -1,0 +1,9 @@
+CMAKE_MINIMUM_REQUIRED( VERSION 2.8 )
+PROJECT( dense_mapping )
+
+SET( CMAKE_CXX_COMPILER "g++" )
+SET( CMAKE_BUILD_TYPE Release )			# build as release
+SET( EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin ) #output files
+SET( CMAKE_CXX_FLAGS -std=c++11 )		
+
+ADD_SUBDIRECTORY( ${PROJECT_SOURCE_DIR}/src )	# Source files
