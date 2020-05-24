@@ -24,7 +24,7 @@ Dense mapping using trajectory files from ORB_SLAM2.
 ### Dataset
 
 As input this program takes trajectory.txt file and dataset folder which contains `rgb` and `depth` folders inside.
-Images IDs should be on the trajectory file --> id, tx, ty, tz, qx, qy, qz, qw
+Trajectory file line format: `id, tx, ty, tz, qx, qy, qz, qw` where id is the id of the frame. Program uses this id to read rgb (r+id.png) and depth (d+id.png) images.
 
 -`Import trajectory.txt to /bin.` 
 
