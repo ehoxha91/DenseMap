@@ -7,7 +7,9 @@ Dense mapping using trajectory files from ORB_SLAM2.
 
 ### To build
 -`mkdir build && cd build`
+
 -`cmake ..`
+
 -`make`
 
 ### To run
