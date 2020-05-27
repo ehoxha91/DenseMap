@@ -19,7 +19,9 @@ Dense mapping using trajectory files from ORB_SLAM2.
 
 -`cd ~/bin`
 
--`./dense_mapping dataset_folder trajectory_file.txt max_frames denseMapp.pcd `
+-`./dense_mapping dataset_folder trajectory_file.txt max_frames distance_threshold denseMapp.pcd `
+
+Where max_frames is the number of frames to be used on this map, and distance_threshold is up to what depth for each frame.
 
 ### Dataset
 
