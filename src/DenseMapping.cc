@@ -80,34 +80,38 @@ typedef struct FRAME
 }Frame;
 
 Frame readFrame(int, string);
-PointCloud::Ptr image2PointCloud(cv::Mat& rgb, cv::Mat& depth, Camera& Camera);
+PointCloud::Ptr image2PointCloud(cv::Mat& rgb, cv::Mat& depth, Camera& Camera, int);
 void readFile(string filename, poseType &poses ,vector<int> &_frameId);
 
 int main( int argc, char** argv )
 {
-	if(argc != 5)
+	if(argc != 6)
 	{
-		cerr << RED"Command should have this form: ./denseMapping dataset_folder trajectory_file max_frames denseMapp.pcd" << endl;
+		cerr << RED"Command should have this form: ./denseMapping dataset_folder trajectory_file max_frames(-1 for all frames) dist_threshold denseMapp.pcd" << endl;
 		return -1;
 	}
 
 	Camera cam;
-	// cam.cx = 294.827;
-	// cam.cy = 241.541;
-	// cam.fx = 638.276;
-	// cam.fy = 637.043;
-	// cam.scale  = 1000.0;
-	cam.cx=318.6;
-    cam.cy=255.3;
-    cam.fx=517.3;
-    cam.fy=516.5;
-    cam.scale=5000.0;
+	cam.cx = 294.827;
+	cam.cy = 241.541;
+	cam.fx = 638.276;
+	cam.fy = 637.043;
+	cam.scale  = 1000.0;
+	// cam.cx=318.6;
+    // cam.cy=255.3;
+    // cam.fx=517.3;
+    // cam.fy=516.5;
+    // cam.scale=5000.0;
+    string _sthresh = string(argv[4]);
+	stringstream _distthr(_sthresh);
+	int dist_threshold = 0;
+	_distthr >> dist_threshold;
 
 	string datasetPath = string(argv[1]);		// Folder for rgb and depth images.
 	string _maxframes = string(argv[3]);
 	int maxframes;
 	istringstream(_maxframes) >> maxframes;
-	string outputFilenName = string(argv[4]);
+	string outputFilenName = string(argv[5]);
 	
 	vector<int> frameIDs;
 	poseType poses;
@@ -118,23 +122,27 @@ int main( int argc, char** argv )
     PointCloud::Ptr pcloud (new PointCloud());
     PointCloud::Ptr tmp (new PointCloud());
 
+	if(maxframes == -1)
+		maxframes = frameIDs.size();
+
 	for (int i = 0; (i < frameIDs.size()) && (i<maxframes); i++)
 	{
 		
 		Frame currFrame = readFrame(frameIDs[i], datasetPath);
-		PointCloud::Ptr newCloud = image2PointCloud( currFrame.rgb, currFrame.depth, cam ); //Generate point cloud
+		PointCloud::Ptr newCloud = image2PointCloud( currFrame.rgb, currFrame.depth, cam , dist_threshold); //Generate point cloud
         pcl::transformPointCloud(*newCloud, *tmp, poses[i].matrix());
 		cout <<"T = \n"<<poses[i].matrix() << endl;
         *pcloud += *tmp;
         tmp->clear();
 		cout <<YELLOW"Current frame: " << frameIDs[i]<<endl;
 	}
-	pcl::visualization::CloudViewer viewer( "viewer" );
-    viewer.showCloud( pcloud );
-    while( !viewer.wasStopped() )
-    {
+//	pcl::visualization::CloudViewer viewer( "viewer" );
+//    viewer.showCloud( pcloud );
+//    while( !viewer.wasStopped() )
+//    {
 
-    }
+//    }
+	cout << YELLOW"Saving point cloud..."<<endl;
 	pcl::io::savePCDFile(outputFilenName, *pcloud);
 	cout << GREEN"Point Cloud Saved as: " << outputFilenName<<endl;
 	return 0;
@@ -154,7 +162,7 @@ Frame readFrame(int index, string datasetFolder)
 }
 
 //Convert RGB image/map to point cloud
-PointCloud::Ptr image2PointCloud( Mat& rgb, Mat& depth, Camera& camera )
+PointCloud::Ptr image2PointCloud( Mat& rgb, Mat& depth, Camera& camera, int dist_threshold)
 {
 	PointCloud::Ptr cloud (new PointCloud);
 	for (int m = 0; m < depth.rows; m++)
@@ -164,8 +172,7 @@ PointCloud::Ptr image2PointCloud( Mat& rgb, Mat& depth, Camera& camera )
 			//get the value of depth from depth image:
 			ushort d = depth.ptr<ushort> (m)[n];
 			//IF d == 0, we don't have enough info for point cloud, skip it.
-			if(d == 0) continue;
-
+			if(d == 0 || d > dist_threshold) continue;
 			//ELSE:
 			PointT p;
 
